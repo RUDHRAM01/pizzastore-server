@@ -57,7 +57,7 @@ router.put('/:id', (req, res) => {
 // Delete user
 router.delete('/:id', (req, res) => {
     const id = parseInt(req.params.id)
-
+    
     pool.query('DELETE FROM users WHERE id = $1', [id], (error, results) => {
         if (error) {
             throw error
