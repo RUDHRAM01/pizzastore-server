@@ -2,6 +2,35 @@ const express = require('express')
 const router = express.Router()
 const bcrypt = require('bcrypt')
 const pool = require('../db/Db')
+const jwt = require('jsonwebtoken')
+
+//Sign in
+
+router.post('/signin', async (req, res) => {
+    const { email, password } = req.body;
+    pool.query('Select * from users where email = $1', [email], (error, results) => {
+        if (error) {
+            throw error
+        }
+        if (results.rows.length > 0) {
+            const user = results.rows[0];
+            bcrypt.compare(password, user.password, (err, result) => {
+                if (err) {
+                    throw err
+                }
+                if (result) {
+                    const token = jwt.sign({ email: user.email, id: user.id }, process.env.JWT_SECRET);
+                    res.status(200).json({ result: user, token })
+                } else {
+                    res.status(401).json({ message: 'Password is incorrect' })
+                }
+            })
+        } else {
+            res.status(401).json({ message: 'User does not exist' })
+        }
+    })
+})
+
 
 // Get all users
 router.get('/', (req, res) => {
@@ -28,7 +57,6 @@ router.get('/:id', (req, res) => {
 // Create a new user
 router.post('/', async (req, res) => {
     const { fname, lname, email, password, phone, address } = req.body;
-
     pool.query('Select * from users where email = $1', [email], (error, results) => {
         if (error) {
             throw error
@@ -43,7 +71,9 @@ router.post('/', async (req, res) => {
         if (error) {
             throw error
         }
-        res.status(201).send(`User added with ID: ${results.insertId}`)
+
+        const token = jwt.sign({ id: results.insertId }, process.env.JWT_SECRET);
+        res.status(201).send({user : results.insertId, token: token})
     })
 })
 
