@@ -27,9 +27,9 @@ router.get('/:id', (req, res) => {
 
 // Create a new user
 router.post('/', (req, res) => {
-    const { fname, lname, email, password } = req.body;
+    const { fname, lname, email, password, phone, address } = req.body;
 
-    pool.query('INSERT INTO users (fname, lname, email, password) VALUES ($1, $2, $3, $4)', [fname, lname, email, password], (error, results) => {
+    pool.query('INSERT INTO users (fname, lname, email, password, phone, address) VALUES ($1, $2, $3, $4, $5, $6)', [fname, lname, email, password, phone, address], (error, results) => {
         if (error) {
             throw error
         }
@@ -40,11 +40,11 @@ router.post('/', (req, res) => {
 // Update user
 router.put('/:id', (req, res) => {
     const id = parseInt(req.params.id)
-    const { fname, lname, email, password } = req.body
+    const { fname, lname, email, password, phone, address } = req.body
 
     pool.query(
-        'UPDATE users SET fname = $1, lname = $2, email = $3, password = $4 WHERE id = $5',
-        [fname, lname, email, password, id],
+        'UPDATE users SET fname = $1, lname = $2, email = $3, password = $4, phone = $5, address = $6 WHERE id = $7',
+        [fname, lname, email, password, phone, address, id],
         (error, results) => {
             if (error) {
                 throw error
@@ -57,7 +57,7 @@ router.put('/:id', (req, res) => {
 // Delete user
 router.delete('/:id', (req, res) => {
     const id = parseInt(req.params.id)
-
+    
     pool.query('DELETE FROM users WHERE id = $1', [id], (error, results) => {
         if (error) {
             throw error
