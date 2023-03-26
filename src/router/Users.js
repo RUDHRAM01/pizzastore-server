@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-
+const bcrypt = require('bcrypt')
 const pool = require('../db/Db')
 
 // Get all users
@@ -26,10 +26,20 @@ router.get('/:id', (req, res) => {
 })
 
 // Create a new user
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
     const { fname, lname, email, password, phone, address } = req.body;
 
-    pool.query('INSERT INTO users (fname, lname, email, password, phone, address) VALUES ($1, $2, $3, $4, $5, $6)', [fname, lname, email, password, phone, address], (error, results) => {
+    pool.query('Select * from users where email = $1', [email], (error, results) => {
+        if (error) {
+            throw error
+        }
+        if (results.rows.length > 0) {
+            res.status(400).send('User already exists')
+        }
+    })
+
+    const hashPass = await bcrypt.hash(password, 10);
+    pool.query('INSERT INTO users (fname, lname, email, password, phone, address) VALUES ($1, $2, $3, $4, $5, $6)', [fname, lname, email, hashPass, phone, address], (error, results) => {
         if (error) {
             throw error
         }
@@ -57,7 +67,7 @@ router.put('/:id', (req, res) => {
 // Delete user
 router.delete('/:id', (req, res) => {
     const id = parseInt(req.params.id)
-    
+
     pool.query('DELETE FROM users WHERE id = $1', [id], (error, results) => {
         if (error) {
             throw error
