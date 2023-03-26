@@ -1,10 +1,9 @@
 const express = require('express');
 const router = express.Router();
-
 const pool = require('../db/Db');
-
+const auth = require('../middleware/auth');
 // Get all cart
-router.get('/', (req, res) => {
+router.get('/', auth, (req, res) => {
     pool.query('SELECT * FROM cart ORDER BY id ASC', (error, results) => {
         if (error) {
             throw error
@@ -14,7 +13,7 @@ router.get('/', (req, res) => {
 })
 
 // Get cart by id
-router.get('/:id', (req, res) => {
+router.get('/:id', auth, (req, res) => {
     const id = parseInt(req.params.id)
 
     pool.query('SELECT * FROM cart WHERE id = $1', [id], (error, results) => {
@@ -26,7 +25,7 @@ router.get('/:id', (req, res) => {
 })
 
 // Create a new cart
-router.post('/', (req, res) => {
+router.post('/', auth, (req, res) => {
     const { userId, ingredientsId, quantity } = req.body;
 
     pool.query('INSERT INTO cart (userId, ingredientsId, quantity) VALUES ($1, $2, $3)', [userId, ingredientsId, quantity], (error, results) => {
@@ -39,7 +38,7 @@ router.post('/', (req, res) => {
 
 
 // Delete cart
-router.delete('/:id', (req, res) => {
+router.delete('/:id', auth, (req, res) => {
     const id = parseInt(req.params.id)
     pool.query('DELETE FROM cart WHERE id = $1', [id], (error, results) => {
         if (error) {

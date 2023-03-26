@@ -3,7 +3,7 @@ const router = express.Router()
 const bcrypt = require('bcrypt')
 const pool = require('../db/Db')
 const jwt = require('jsonwebtoken')
-
+const auth = require('../middleware/auth')
 //Sign in
 
 router.post('/signin', async (req, res) => {
@@ -33,7 +33,7 @@ router.post('/signin', async (req, res) => {
 
 
 // Get all users
-router.get('/', (req, res) => {
+router.get('/', auth, (req, res) => {
     pool.query('SELECT * FROM users ORDER BY id ASC', (error, results) => {
         if (error) {
             throw error
@@ -43,7 +43,7 @@ router.get('/', (req, res) => {
 })
 
 // Get user by id
-router.get('/:id', (req, res) => {
+router.get('/:id', auth, (req, res) => {
     const id = parseInt(req.params.id)
 
     pool.query('SELECT * FROM users WHERE id = $1', [id], (error, results) => {
@@ -78,7 +78,7 @@ router.post('/', async (req, res) => {
 })
 
 // Update user
-router.put('/:id', (req, res) => {
+router.put('/:id', auth, (req, res) => {
     const id = parseInt(req.params.id)
     const { fname, lname, email, password, phone, address } = req.body
 
@@ -95,7 +95,7 @@ router.put('/:id', (req, res) => {
 });
 
 // Delete user
-router.delete('/:id', (req, res) => {
+router.delete('/:id', auth, (req, res) => {
     const id = parseInt(req.params.id)
 
     pool.query('DELETE FROM users WHERE id = $1', [id], (error, results) => {
