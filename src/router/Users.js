@@ -55,25 +55,26 @@ router.get('/:id', auth, (req, res) => {
 })
 
 // Create a new user
-router.post('/', async (req, res) => {
+router.post('/register', async (req, res) => {
     const { fname, lname, email, password, phone, address } = req.body;
-    pool.query('Select * from users where email = $1', [email], (error, results) => {
+    pool.query('Select * from users where email = $1', [email], async (error, results) => {
         if (error) {
-            throw error
+            res.status(400).send(error)
         }
         if (results.rows.length > 0) {
             res.status(400).send('User already exists')
+        }else{
+            const hashPass = await bcrypt.hash(password, 10);
+            pool.query('INSERT INTO users (fname, lname, email, password, phone, address) VALUES ($1, $2, $3, $4, $5, $6)', [fname, lname, email, hashPass, phone, address], (error, results) => {
+                if (error) {
+                    res.status(400).send(error)
+                    return
+                }
+                const token = jwt.sign({ id: results.id }, process.env.JWT_SECRET);
+                res.status(201).send({user : results.id, token: token})
+            })
         }
-    })
 
-    const hashPass = await bcrypt.hash(password, 10);
-    pool.query('INSERT INTO users (fname, lname, email, password, phone, address) VALUES ($1, $2, $3, $4, $5, $6)', [fname, lname, email, hashPass, phone, address], (error, results) => {
-        if (error) {
-            throw error
-        }
-
-        const token = jwt.sign({ id: results.insertId }, process.env.JWT_SECRET);
-        res.status(201).send({user : results.insertId, token: token})
     })
 })
 
