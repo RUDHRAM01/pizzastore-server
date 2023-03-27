@@ -6,7 +6,7 @@ const auth = require('../middleware/auth');
 router.get('/', auth, (req, res) => {
     pool.query('SELECT * FROM cart ORDER BY id ASC', (error, results) => {
         if (error) {
-            throw error
+            res.status(401).json(error)
         }
         res.status(200).json(results.rows)
     })
@@ -25,15 +25,32 @@ router.get('/:id', auth, (req, res) => {
 })
 
 // Create a new cart
-router.post('/', auth, (req, res) => {
-    const { userId, ingredientsId, quantity } = req.body;
+router.post('/', (req, res) => {
+    let { userId, data } = req.body;
 
-    pool.query('INSERT INTO cart (userId, ingredientsId, quantity) VALUES ($1, $2, $3)', [userId, ingredientsId, quantity], (error, results) => {
+    let k = JSON.stringify(data)
+    pool.query('SELECT * FROM cart WHERE id = $1', [userId], (error, results) => {
         if (error) {
-            throw error
+            console.log(error)
         }
-        res.status(201).send(`Cart added with ID: ${results.insertId}`)
+        if (results.rows.length === 0) {
+            pool.query('INSERT INTO cart (id, data) VALUES ($1, $2)', [userId, k], (error, results) => {
+                if (error) {
+                    throw error
+                }
+                res.status(201).send(`Cart added with ID: ${results.id}`)
+            })
+        } else {
+            pool.query('UPDATE cart SET data = $1 WHERE id = $2',[k,userId],(error, results) => {
+                    if (error) {
+                        throw error
+                    }
+                    res.status(200).send(`Cart updated with ID: ${userId}`)
+                }
+            )
+        }
     })
+
 })
 
 
