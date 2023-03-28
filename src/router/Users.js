@@ -7,7 +7,10 @@ const auth = require('../middleware/auth')
 //Sign in
 
 router.post('/signin', async (req, res) => {
+
+    
     const { email, password } = req.body;
+
     pool.query('Select * from users where email = $1', [email], (error, results) => {
         if (error) {
             throw error

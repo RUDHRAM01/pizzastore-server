@@ -13,4 +13,20 @@ router.get('/', auth, (req, res) => {
     })
 })
 
+// post ingredient
+
+router.post('/', auth, (req, res) => {
+    const { name } = req.body
+
+    const k = JSON.stringify(name)
+
+    pool.query('INSERT INTO ingredients (name) VALUES ($1)', [k], (error, results) => {
+        if (error) {
+            throw error
+        }
+        res.status(201).send(`Ingredient added with ID: ${results.id}`)
+    })
+})
+
+
 module.exports = router;
