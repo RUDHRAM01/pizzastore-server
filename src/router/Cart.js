@@ -13,19 +13,19 @@ router.get('/', auth, (req, res) => {
 })
 
 // Get cart by id
-router.get('/:id', auth, (req, res) => {
+router.get('/:id',auth, (req, res) => {
     const id = parseInt(req.params.id)
 
     pool.query('SELECT * FROM cart WHERE id = $1', [id], (error, results) => {
         if (error) {
-            throw error
+            res.status(401).json("not found")
         }
         res.status(200).json(results.rows)
     })
 })
 
 // Create a new cart
-router.post('/', (req, res) => {
+router.post('/', auth ,(req, res) => {
     let { userId, data } = req.body;
 
     let k = JSON.stringify(data)
@@ -55,7 +55,7 @@ router.post('/', (req, res) => {
 
 
 // Delete cart
-router.delete('/:id', auth, (req, res) => {
+router.delete('/:id', (req, res) => {
     const id = parseInt(req.params.id)
     pool.query('DELETE FROM cart WHERE id = $1', [id], (error, results) => {
         if (error) {
